@@ -2,7 +2,7 @@
 //it also allows you to define a value which survives component re-renders.
 //useEffect allows you to run logic after every render cycle.
 import React, {useState, useRef, useEffect} from 'react';
-import {View, Text, StyleSheet, Alert, ScrollView} from 'react-native';
+import {View, Text, StyleSheet, Alert, ScrollView, FlatList} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import NumberContainer from '../components/NumberContainer';
@@ -27,10 +27,10 @@ const generateRandomBetween = (min,max, exclude) => {
 };
 
 //The following function is used to render the list item of past guesses.
-const renderListItem = (value, numOfRound) => (
-    <View key={value} style={styles.listItem}>
-        <BodyText>Round: {numOfRound}</BodyText>
-        <BodyText>Guess: {value}</BodyText>
+const renderListItem = (listLength, itemData) => (
+    <View style={styles.listItem}>
+        <BodyText>Round: {listLength - itemData.index}</BodyText>
+        <BodyText>Guess: {itemData.item}</BodyText>
     </View>
 );
 
@@ -41,7 +41,7 @@ const GameScreen = props => {
     const initGuess = generateRandomBetween(1, 100, props.userChoice);
 
     const [currentGuess, setCurrentGuess] = useState(initGuess);
-    const [pastGuesses, setPastGuesses] = useState([initGuess]);
+    const [pastGuesses, setPastGuesses] = useState([initGuess.toString()]);
     
 
     const currentLow = useRef(1);
@@ -75,7 +75,7 @@ const GameScreen = props => {
         const nextNumber = generateRandomBetween(currentLow.current, currentHigh.current, currentGuess);
         setCurrentGuess(nextNumber);
         //setNoOfGuesses(curRounds => curRounds + 1);
-        setPastGuesses(curPastGuesses => [nextNumber , ...curPastGuesses]);
+        setPastGuesses(curPastGuesses => [nextNumber.toString() , ...curPastGuesses]);
     };
 
     return (
@@ -92,9 +92,16 @@ const GameScreen = props => {
                 </MainButton>
             </Card>
             <View style={styles.listContainer}>
-                <ScrollView contentContainerStyle={styles.list}>
+                {/* contentContainerStyle is used to control the view of the scrollview */}
+                {/* <ScrollView contentContainerStyle={styles.list}>
                     {pastGuesses.map((guess, index) => renderListItem(guess, pastGuesses.length - index))}
-                </ScrollView>
+                </ScrollView> */}
+                <FlatList 
+                    keyExtractor={(item) => item} 
+                    data={pastGuesses} 
+                    renderItem={renderListItem.bind(this, pastGuesses.length)} 
+                    contentContainerStyle={styles.list}
+                />
             </View>
             
         </View>
@@ -122,16 +129,16 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         flexDirection: 'row',
         justifyContent: 'space-between',
-        width: '60%'
+        width: '100%'
     }, 
     listContainer: {
-        width: '80%',
+        width: '60%',
         flex: 1
     },
     list: {
         //flexGrow makes sure u use as much space as Flex, however its more flexible than flex, it allows it our scrollview component to function whilst also growing the list view
         flexGrow: 1,
-        alignItems: 'center',
+        // alignItems: 'center',
         justifyContent: 'flex-end'
     }
 });
